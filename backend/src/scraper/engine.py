@@ -56,9 +56,20 @@ class ScraperEngine:
             # Pass strict_prefs and soft_prefs as a JSON string
             result = subprocess.check_output(
                 [sys.executable, worker_path, search_query, json.dumps(strict_prefs), json.dumps(soft_prefs)], 
-                text=True
+                text=True,
+                encoding='utf-8'
             )
-            return json.loads(result)
+            print(f"[Scraper Debug] Raw subprocess output length: {len(result)}")
+            if not result.strip():
+                print("[Scraper Debug] Subprocess output is entirely empty!")
+            try:
+                start_idx = result.find('[')
+                if start_idx != -1:
+                    result = result[start_idx:]
+                return json.loads(result)
+            except Exception as parse_e:
+                print(f"[Scraper Debug] Parse error on output: {result[:100]}...")
+                raise parse_e
             
         try:
             print(f"[Internshala] Delegating scrape task to isolated Playwright worker...")
